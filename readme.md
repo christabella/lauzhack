@@ -1,4 +1,1 @@
-```
-npm install
-node app.js
-```
+# lauzhack

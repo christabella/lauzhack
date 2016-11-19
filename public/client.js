@@ -48,14 +48,23 @@ else if (navigator.getUserMedia) { // Standard
 
 // Trigger photo take
 document.getElementById('snap').addEventListener('click', function() {
-    context.drawImage(video, 0, 0, 640, 480);
     //var fullQuality = canvas.toDataURL("image/jpeg", 1.0);
 
-    var imgData = canvas.toDataURL("img/png", 0.1);
+    var fullQualityImg = canvas.toDataURL("img/png", 1.0); // Data URI
+    var originalImg = new Image;
+    
+    context.drawImage(video, 0, 0, 640, 480); // Draw video screenshot in canvas
+    var imgData = context.getImageData(0, 0, canvas.width, canvas.height); // Get image data from canvas context
+    var data = imgData.data;
     $.post('/upload', {
-        img : imgData
+        img : fullQualityImg
     })
-
-    console.log(imgData);
+    for (var i = 0; i < data.length; i += 4) {
+        // data: one-dimensional array containing the data in the RGBA order
+        if (data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 255) {
+            data[i + 3] = 0; // set alpha value to 0
+        }
+    }
+    context.putImageData(imgData, 0, 0);
 
 });
