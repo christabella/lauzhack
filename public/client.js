@@ -62,7 +62,7 @@ document.getElementById('snap').addEventListener('click', function() {
     console.log(data);
     for (var i = 0; i < data.length; i += 4) {
         // data: one-dimensional array containing the data in the RGBA order
-        if (data[i] == 76 && data[i + 1] == 65 && data[i + 2] == 254) {
+        if (data[i] == 76 && data[i + 1] == 65 && data[i + 2] >= 252) {
             data[i + 3] = 0; // set alpha value to 0
         }
     }
