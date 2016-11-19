@@ -143,15 +143,33 @@ document.getElementById('snap').addEventListener('click', function() {
             h = canvas.height;
 
         // Cut from context
-        var cut = context.getImageData(0, y_min, w, h-y_min);
+        var cut = context.getImageData(0, y_min+50, w, h-y_min-50);
 
         // Resize canvas to fit new cropped dimensions
         canvas.width = w;
-        canvas.height = h;
+        canvas.height = h-y_min-50;
         context.putImageData(cut, 0, 0);
+        /*** FUCKING FINALLY GET FUCKING DESCRIPTION ***/
         
-        // document.body.style.backgroundColor = "#" + data.color.accentColor;
-    }).fail(function(data) {
+            $.ajax({
+                type: "POST",
+                url : "https://api.projectoxford.ai/vision/v1.0/analyze?visualFeatures=Description,Color&language=en",
+                headers: {
+                    "Content-Type": "application/octet-stream",
+                    "Ocp-Apim-Subscription-Key": "5ac294bfeee8467f8680e0f6f8b661c2"
+                },
+                data : makeBlob(canvas.toDataURL('image/jpeg')),
+                processData: false
+            }).done(function(data) {
+                console.info(JSON.stringify(data));
+                /*** fucking finally get face rectangle ***/
+
+                
+                document.body.style.backgroundColor = "#" + data.color.accentColor;
+            }).fail(function(data) {
+                console.error(JSON.stringify(data));
+            });
+        }).fail(function(data) {
         console.error(JSON.stringify(data));
     });
 
