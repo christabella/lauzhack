@@ -30,7 +30,7 @@ app.post('/upload', function(req, res){
 
 });
 
-var port = process.env.port || 3007;
+var port = process.env.PORT || 3007;
 http.listen(port, function(){
     console.log('running at port :' , port)
 });
