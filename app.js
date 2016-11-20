@@ -32,30 +32,10 @@ app.post('/upload', function(req, res){
 
 });
 
-app.post('/getFaceRectangle', function(req, res){
+app.post('/android', function(req, res){
 
-    console.log("Getting face rectangle");
-    base64Data = req.body.img.replace(/^data:image\/png;base64,/,"");
-    binaryData = new Buffer(base64Data, 'base64').toString('binary');
-
-    request.post({
-        body: binaryData,
-        url: 'https://api.projectoxford.ai/vision/v1.0/analyze?visualFeatures=Faces&language=en',
-        method: 'POST',
-        headers: {
-            'Ocp-Apim-Subscription-Key': '5ac294bfeee8467f8680e0f6f8b661c2',
-            'Content-Type': 'application/octet-stream'
-        },
-        processData: false
-    }, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            console.log(body) 
-        } else {
-            console.log("error")
-            console.log(error)
-            console.log(response)
-        }
-    });
+    console.log(req);
+    console.log("sent to test android endpoint");
 
 });
 

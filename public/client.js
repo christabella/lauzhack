@@ -64,7 +64,7 @@ else if (navigator.getUserMedia) { // Standard
 // Trigger photo take
 document.getElementById('snap').addEventListener('click', function() {
     //var fullQuality = canvas.toDataURL("image/jpeg", 1.0);
-
+    var id = $('#idtext').val();
     // Draw video screenshot in canvas
     context.drawImage(video, 0, 0, 640, 480); 
     // Create PNG image to upload
@@ -125,7 +125,7 @@ document.getElementById('snap').addEventListener('click', function() {
 
     $.ajax({
         type: "POST",
-        url : "https://api.projectoxford.ai/vision/v1.0/analyze?visualFeatures=Faces&language=en",
+        url : "https://api.projectoxford.ai/vision/v1.0/analyze?visualFeatures=Faces,Description&language=en",
         headers: {
             "Content-Type": "application/octet-stream",
             "Ocp-Apim-Subscription-Key": "5ac294bfeee8467f8680e0f6f8b661c2"
@@ -134,6 +134,18 @@ document.getElementById('snap').addEventListener('click', function() {
         processData: false
     }).done(function(data) {
         console.info(JSON.stringify(data));
+        // Before cutting out the face, get tags!
+
+        var tags = data.description.tags;
+        var filteredTags;
+
+        function checkTag(tag) {
+            var clothingTags = ["dress", "shirt", "tie", "suit", "jeans", "skirt", "jacket"];;
+            return (clothingTags.indexOf(tag) >= 0); // Whether tag is in clothingTags
+        }
+
+        filteredTags = tags.filter(checkTag);
+
         /*** fucking finally get face rectangle ***/
         var face = data.faces[0];
         var rect = face.faceRectangle;
@@ -149,27 +161,71 @@ document.getElementById('snap').addEventListener('click', function() {
         canvas.width = w;
         canvas.height = h-y_min-50;
         context.putImageData(cut, 0, 0);
-        /*** FUCKING FINALLY GET FUCKING DESCRIPTION ***/
-        
-            $.ajax({
-                type: "POST",
-                url : "https://api.projectoxford.ai/vision/v1.0/analyze?visualFeatures=Description,Color&language=en",
-                headers: {
-                    "Content-Type": "application/octet-stream",
-                    "Ocp-Apim-Subscription-Key": "5ac294bfeee8467f8680e0f6f8b661c2"
-                },
-                data : makeBlob(canvas.toDataURL('image/jpeg')),
-                processData: false
-            }).done(function(data) {
-                console.info(JSON.stringify(data));
-                /*** fucking finally get face rectangle ***/
+        var age = face.age;
+        var gender = face.gender;
 
-                
-                document.body.style.backgroundColor = "#" + data.color.accentColor;
-            }).fail(function(data) {
-                console.error(JSON.stringify(data));
-            });
+        // getAverageRGB {
+            
+        var blockSize = 2, // only visit every 5 pixels
+            data, 
+            i = -4,
+            length,
+            rgb = {r:0,g:0,b:0},
+            count = 0;
+        var w = canvas.width,
+            h = canvas.height;
+            
+        data = context.getImageData(w/2 - 30, 0 +h/2 - 30, 60, 60);
+
+        length = data.data.length;
+        
+        while ( (i += blockSize * 4) < length ) {
+            ++count;
+            rgb.r += data.data[i];
+            rgb.g += data.data[i+1];
+            rgb.b += data.data[i+2];
+        }
+        
+        // ~~ used to floor values
+        rgb.r = ~~(rgb.r/count);
+        rgb.g = ~~(rgb.g/count);
+        rgb.b = ~~(rgb.b/count);
+        console.log(rgb);
+        var rgbstring = '#' + ("0" + parseInt(rgb.r,10).toString(16)).slice(-2) +
+          ("0" + parseInt(rgb.g,10).toString(16)).slice(-2) +
+          ("0" + parseInt(rgb.b,10).toString(16)).slice(-2);
+
+        /*** FUCKING FINALLY SEND FUCKING DATA ***/
+        
+        var dataJSON = new Object();
+        dataJSON.id = id;
+        dataJSON.gender = gender;
+        dataJSON.age = age;
+        dataJSON.color = rgbstring;
+        dataJSON.tags = filteredTags;
+
+        console.log("dataJSON");
+        console.log(dataJSON);
+        var dataJSONstring = JSON.stringify(dataJSON);
+
+        $.ajax({
+            type: "POST",
+            url : "/android",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            data : dataJSONstring,
+            processData: false
+        }).done(function(data) {
+            console.info(JSON.stringify(data));
+            console.info("sent to android, finally");
+
+            
         }).fail(function(data) {
+            console.error(JSON.stringify(data));
+        });
+
+    }).fail(function(data) {
         console.error(JSON.stringify(data));
     });
 
