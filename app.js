@@ -37,7 +37,7 @@ app.post('/android', function(req, res){
 
     console.log(req);
     console.log("sent to test android endpoint");
-    objects[req.]
+    objects[req.body.id] = req.body;
 });
 
 app.get('/id/:id', function (req, res) {
