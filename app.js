@@ -43,7 +43,9 @@ app.post('/android', function(req, res){
 app.get('/id/:id', function (req, res) {
     var id = req.params.id;
     if(objects.hasOwnProperty(id)){
-        res.send(JSON.stringify(objects[id]));
+        res.send(objects[id]);
+    } else {
+        res.send("null");
     }
 });
 
