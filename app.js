@@ -6,6 +6,7 @@ var io = require('socket.io')(http);
 var bodyParser = require('body-parser');
 var request = require('request');
 
+var objects = {};
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false, limit : '5mb' }))
@@ -36,7 +37,14 @@ app.post('/android', function(req, res){
 
     console.log(req);
     console.log("sent to test android endpoint");
+    objects[req.]
+});
 
+app.get('/id/:id', function (req, res) {
+    var id = req.params.id;
+    if(objects.hasOwnProperty(id)){
+        res.send(JSON.stringify(objects[id]));
+    }
 });
 
 /** When Android app POSTs to trigger takephoto **/
